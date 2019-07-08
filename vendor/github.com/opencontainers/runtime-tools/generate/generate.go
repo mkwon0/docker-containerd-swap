@@ -810,6 +810,11 @@ func (g *Generator) SetLinuxResourcesMemorySwappiness(swappiness uint64) {
 	g.Config.Linux.Resources.Memory.Swappiness = &swappiness
 }
 
+func (g *Generator) SetLinuxResourcesMemorySwapfile(swapfile string) {
+	g.initConfigLinuxResourcesMemory()
+	g.Config.Linux.Resources.Memory.Swapfile = &swapfile
+}
+
 // SetLinuxResourcesMemoryDisableOOMKiller sets g.Config.Linux.Resources.Memory.DisableOOMKiller.
 func (g *Generator) SetLinuxResourcesMemoryDisableOOMKiller(disable bool) {
 	g.initConfigLinuxResourcesMemory()

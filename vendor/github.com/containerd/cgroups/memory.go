@@ -251,13 +251,25 @@ func (m *memoryController) parseStats(r io.Reader, stat *MemoryStat) error {
 
 func (m *memoryController) set(path string, settings []memorySettings) error {
 	for _, t := range settings {
-		if t.value != nil {
-			if err := ioutil.WriteFile(
-				filepath.Join(m.Path(path), fmt.Sprintf("memory.%s", t.name)),
-				[]byte(strconv.FormatInt(*t.value, 10)),
-				defaultFilePerm,
-			); err != nil {
-				return err
+		if strings.Contains(t.name, "swapfile") {
+			if t.svalue != nil {
+				if err := ioutil.WriteFile(
+					filepath.Join(m.Path(path), fmt.Sprintf("memory.%s", t.name)),
+					[]byte(*t.svalue),
+					defaultFilePerm,
+				); err != nil {
+					return err
+				}
+			}
+		} else {
+			if t.value != nil {
+				if err := ioutil.WriteFile(
+					filepath.Join(m.Path(path), fmt.Sprintf("memory.%s", t.name)),
+					[]byte(strconv.FormatInt(*t.value, 10)),
+					defaultFilePerm,
+				); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -267,14 +279,20 @@ func (m *memoryController) set(path string, settings []memorySettings) error {
 type memorySettings struct {
 	name  string
 	value *int64
+	svalue *string
 }
 
 func getMemorySettings(resources *specs.LinuxResources) []memorySettings {
 	mem := resources.Memory
 	var swappiness *int64
+	var swapfile *string
 	if mem.Swappiness != nil {
 		v := int64(*mem.Swappiness)
 		swappiness = &v
+	}
+	if mem.Swapfile ! nil {
+		v := *mem.swapfile
+		swapfile = &v
 	}
 	return []memorySettings{
 		{
@@ -300,6 +318,10 @@ func getMemorySettings(resources *specs.LinuxResources) []memorySettings {
 		{
 			name:  "swappiness",
 			value: swappiness,
+		},
+		{
+			name: "swapfile",
+			svalue: swapfile,
 		},
 	}
 }
